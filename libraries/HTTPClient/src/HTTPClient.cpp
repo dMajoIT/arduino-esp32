@@ -260,7 +260,7 @@ bool HTTPClient::beginInternal(String url, const char* expectedProtocol)
 
     _protocol = url.substring(0, index);
     if (_protocol != expectedProtocol) {
-        log_w("unexpected protocol: %s, expected %s", _protocol.c_str(), expectedProtocol);
+        log_d("unexpected protocol: %s, expected %s", _protocol.c_str(), expectedProtocol);
         return false;
     }
 
@@ -386,9 +386,7 @@ void HTTPClient::disconnect(bool preserveClient)
     if(connected()) {
         if(_client->available() > 0) {
             log_d("still data in buffer (%d), clean up.\n", _client->available());
-            while(_client->available() > 0) {
-                _client->read();
-            }
+                _client->flush();
         }
 
         if(_reuse && _canReuse) {
@@ -621,7 +619,21 @@ int HTTPClient::sendRequest(const char * type, uint8_t * payload, size_t size)
 
         // send Payload if needed
         if(payload && size > 0) {
-            if(_client->write(&payload[0], size) != size) {
+            size_t sent_bytes = 0;
+            while(sent_bytes < size){
+                size_t sent = _client->write(&payload[sent_bytes], size - sent_bytes);
+                if (sent == 0){
+                    log_w("Failed to send chunk! Lets wait a bit");
+                    delay(100);
+                    sent = _client->write(&payload[sent_bytes], size - sent_bytes);
+                    if (sent == 0){
+                        log_e("Failed to send chunk!");
+                        break;
+                    }
+                }
+                sent_bytes += sent;
+            }
+            if(sent_bytes != size){
                 return returnError(HTTPC_ERROR_SEND_PAYLOAD_FAILED);
             }
         }
@@ -1543,13 +1555,15 @@ void HTTPClient::clearAllCookies()
 
 void HTTPClient::setCookie(String date, String headerValue)
 {
+    if (!_cookieJar)
+    {
+        return;
+    }
     #define HTTP_TIME_PATTERN "%a, %d %b %Y %H:%M:%S"
 
     Cookie cookie;
     String value;
     int pos1, pos2;
-
-    headerValue.toLowerCase();
 
     struct tm tm;
     strptime(date.c_str(), HTTP_TIME_PATTERN, &tm);
@@ -1565,6 +1579,9 @@ void HTTPClient::setCookie(String date, String headerValue)
         return;     // invalid cookie header
     }
 
+    // only Cookie Attributes are case insensitive from this point on
+    headerValue.toLowerCase();
+
     // expires
     if (headerValue.indexOf("expires=") >= 0){
         pos1 = headerValue.indexOf("expires=") + strlen("expires=");
@@ -1574,7 +1591,7 @@ void HTTPClient::setCookie(String date, String headerValue)
             value = headerValue.substring(pos1, pos2);
         else
             value = headerValue.substring(pos1);
-    
+
         strptime(value.c_str(), HTTP_TIME_PATTERN, &tm);
         cookie.expires.date = mktime(&tm);
         cookie.expires.valid = true;
@@ -1589,7 +1606,7 @@ void HTTPClient::setCookie(String date, String headerValue)
             value = headerValue.substring(pos1, pos2);
         else
             value = headerValue.substring(pos1);
-    
+
         cookie.max_age.duration = value.toInt();
         cookie.max_age.valid = true;
     }
@@ -1639,10 +1656,10 @@ void HTTPClient::setCookie(String date, String headerValue)
     // overwrite or delete cookie in/from cookie jar
     time_t now_local = time(NULL);
     time_t now_gmt = mktime(gmtime(&now_local));
-    
+
     bool found = false;
 
-	for (auto c = _cookieJar->begin(); c != _cookieJar->end(); ++c) {
+    for (auto c = _cookieJar->begin(); c != _cookieJar->end(); ++c) {
         if (c->domain == cookie.domain && c->name == cookie.name) {
             // when evaluating, max-age takes precedence over expires if both are defined
             if ((cookie.max_age.valid && ((cookie.date + cookie.max_age.duration) < now_gmt)) || cookie.max_age.duration <= 0
@@ -1670,6 +1687,10 @@ bool HTTPClient::generateCookieString(String *cookieString)
     *cookieString = "";
     bool found = false;
 
+    if (!_cookieJar)
+    {
+        return false;
+    }
  	for (auto c = _cookieJar->begin(); c != _cookieJar->end(); ++c) {
         if ((c->max_age.valid && ((c->date + c->max_age.duration) < now_gmt)) || (!c->max_age.valid && c->expires.valid && c->expires.date < now_gmt)) {
             _cookieJar->erase(c);
@@ -1682,5 +1703,6 @@ bool HTTPClient::generateCookieString(String *cookieString)
             found = true;
         }
     }
+    
     return found;
 }

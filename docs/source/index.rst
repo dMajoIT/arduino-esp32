@@ -13,8 +13,10 @@ Here you will find all the relevant information about the project.
 
    Getting Started <getting_started>
    Libraries <libraries>
+   Guides <guides/guides>
    Tutorials <tutorials/tutorials>
    Advanced Utilities <advanced_utils>
    FAQ <faq>
    Troubleshooting <troubleshooting>
    Contributing <contributing>
+   External Libraries Testing <external_libraries_test>

@@ -26,6 +26,9 @@ power consumption.
 
 The ESP32 series is available as a chip or module.
 
+
+.. _supported_socs:
+
 Supported SoC's
 ---------------
 
@@ -37,7 +40,7 @@ SoC      Stable Development Datasheet
 ESP32    Yes    Yes         `ESP32`_
 ESP32-S2 Yes    Yes         `ESP32-S2`_
 ESP32-C3 Yes    Yes         `ESP32-C3`_
-ESP32-S3 No     Yes         `ESP32-S3`_
+ESP32-S3 Yes    Yes         `ESP32-S3`_
 ======== ====== =========== ===================================
 
 See `Boards <boards/boards.html>`_ for more details about ESP32 development boards.
@@ -62,6 +65,20 @@ Supported Operating Systems
 .. |windows-logo| image:: _static/logo_windows.png
 .. |linux-logo| image:: _static/logo_linux.png
 .. |macos-logo| image:: _static/logo_macos.png
+
+Supported IDEs
+---------------------------
+
+Here is the list of supported IDE for Arduino ESP32 support integration.
+
++-------------------+-------------------+
+| |arduino-logo|    | |pio-logo|        |
++-------------------+-------------------+
+| Arduino IDE       | PlatformIO        |
++-------------------+-------------------+
+
+.. |arduino-logo| image:: _static/logo_arduino.png
+.. |pio-logo| image:: _static/logo_pio.png
 
 See `Installing Guides <installing.html>`_ for more details on how to install the Arduino ESP32 support.
 
@@ -116,6 +133,7 @@ in the examples menu or inside each library folder.
 
     https://github.com/espressif/arduino-esp32/tree/master/libraries
 
+There is also a `list of examples <https://techtutorialsx.com/category/esp32/>`_ managed outside of Espressif, so check them out.
 
 .. include:: common/datasheet.inc
 

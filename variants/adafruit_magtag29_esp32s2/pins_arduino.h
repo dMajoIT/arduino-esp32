@@ -15,7 +15,7 @@
 #define NUM_DIGITAL_PINS        48
 #define NUM_ANALOG_INPUTS       20
 
-#define analogInputToDigitalPin(p)  (((p)<20)?(esp32_adc2gpio[(p)]):-1)
+#define analogInputToDigitalPin(p)  (((p)<20)?(analogChannelToDigitalPin(p)):-1)
 #define digitalPinToInterrupt(p)    (((p)<48)?(p):-1)
 #define digitalPinHasPWM(p)         (p < 46)
 
@@ -63,7 +63,8 @@ static const uint8_t MISO  = 37;
 
 static const uint8_t TX = 43;
 static const uint8_t RX = 44;
-
+#define TX1 TX
+#define RX1 RX
 
 static const uint8_t A0 = 17;
 static const uint8_t A1 = 18;

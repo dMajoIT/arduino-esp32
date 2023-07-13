@@ -36,6 +36,7 @@ void timerEnd(hw_timer_t *timer);
 void timerSetConfig(hw_timer_t *timer, uint32_t config);
 uint32_t timerGetConfig(hw_timer_t *timer);
 
+void timerAttachInterruptFlag(hw_timer_t *timer, void (*fn)(void), bool edge, int intr_alloc_flags);
 void timerAttachInterrupt(hw_timer_t *timer, void (*fn)(void), bool edge);
 void timerDetachInterrupt(hw_timer_t *timer);
 
@@ -58,7 +59,7 @@ bool timerGetAutoReload(hw_timer_t *timer);
 
 void timerAlarmEnable(hw_timer_t *timer);
 void timerAlarmDisable(hw_timer_t *timer);
-void timerAlarmWrite(hw_timer_t *timer, uint64_t interruptAt, bool autoreload);
+void timerAlarmWrite(hw_timer_t *timer, uint64_t alarm_value, bool autoreload);
 
 bool timerAlarmEnabled(hw_timer_t *timer);
 uint64_t timerAlarmRead(hw_timer_t *timer);
