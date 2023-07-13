@@ -238,6 +238,54 @@ void esp_netif_action_disconnected(void *esp_netif, esp_event_base_t base, int32
 void esp_netif_action_got_ip(void *esp_netif, esp_event_base_t base, int32_t event_id, void *data);
 
 /**
+ * @brief Default building block for network interface action upon IPv6 multicast group join
+ *
+ * @note This API can be directly used as event handler
+ *
+ * @param[in]  esp_netif Handle to esp-netif instance
+ * @param base
+ * @param event_id
+ * @param data
+ */
+void esp_netif_action_join_ip6_multicast_group(void *esp_netif, esp_event_base_t base, int32_t event_id, void *data);
+
+/**
+ * @brief Default building block for network interface action upon IPv6 multicast group leave
+ *
+ * @note This API can be directly used as event handler
+ *
+ * @param[in]  esp_netif Handle to esp-netif instance
+ * @param base
+ * @param event_id
+ * @param data
+ */
+void esp_netif_action_leave_ip6_multicast_group(void *esp_netif, esp_event_base_t base, int32_t event_id, void *data);
+
+/**
+ * @brief Default building block for network interface action upon IPv6 address added by the underlying stack
+ *
+ * @note This API can be directly used as event handler
+ *
+ * @param[in]  esp_netif Handle to esp-netif instance
+ * @param base
+ * @param event_id
+ * @param data
+ */
+void esp_netif_action_add_ip6_address(void *esp_netif, esp_event_base_t base, int32_t event_id, void *data);
+
+/**
+ * @brief Default building block for network interface action upon IPv6 address removed by the underlying stack
+ *
+ * @note This API can be directly used as event handler
+ *
+ * @param[in]  esp_netif Handle to esp-netif instance
+ * @param base
+ * @param event_id
+ * @param data
+ */
+void esp_netif_action_remove_ip6_address(void *esp_netif, esp_event_base_t base, int32_t event_id, void *data);
+
+/**
  * @}
  */
 
@@ -571,9 +619,10 @@ esp_err_t esp_netif_dhcps_stop(esp_netif_t *esp_netif);
  *
  *   If DHCP server is enabled, the Main DNS Server setting is used by the DHCP server to provide a DNS Server option
  *   to DHCP clients (Wi-Fi stations).
- *   - The default Main DNS server is typically the IP of the Wi-Fi AP interface itself.
+ *   - The default Main DNS server is typically the IP of the DHCP server itself.
  *   - This function can override it by setting server type ESP_NETIF_DNS_MAIN.
- *   - Other DNS Server types are not supported for the Wi-Fi AP interface.
+ *   - Other DNS Server types are not supported for the DHCP server.
+ *   - To propagate the DNS info to client, please stop the DHCP server before using this API.
  *
  * @param[in]  esp_netif Handle to esp-netif instance
  * @param[in]  type Type of DNS Server to set: ESP_NETIF_DNS_MAIN, ESP_NETIF_DNS_BACKUP, ESP_NETIF_DNS_FALLBACK

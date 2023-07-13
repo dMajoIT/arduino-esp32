@@ -22,6 +22,7 @@ extern "C"
 
 // Common includes
 #include "dsp_common.h"
+#include "dsp_types.h"
 
 // Signal processing
 #include "dsps_dotprod.h"
@@ -48,6 +49,9 @@ extern "C"
 
 // Support functions
 #include "dsps_view.h"
+
+// Image processing functions:
+#include "dspi_dotprod.h"
 
 
 #ifdef __cplusplus

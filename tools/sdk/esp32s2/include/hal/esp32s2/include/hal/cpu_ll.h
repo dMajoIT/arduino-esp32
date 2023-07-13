@@ -33,7 +33,7 @@ static inline uint32_t IRAM_ATTR cpu_ll_get_core_id(void)
     return 0;
 }
 
-static inline uint32_t cpu_ll_get_cycle_count(void)
+static inline uint32_t IRAM_ATTR cpu_ll_get_cycle_count(void)
 {
     uint32_t result;
     RSR(CCOUNT, result);
@@ -165,7 +165,7 @@ static inline bool cpu_ll_is_debugger_attached(void)
 
 static inline void cpu_ll_break(void)
 {
-    __asm__ ("break 0,0");
+    __asm__ ("break 1,15");
 }
 
 static inline void cpu_ll_set_vecbase(const void* vecbase)

@@ -1,16 +1,8 @@
-// Copyright 2015-2016 Espressif Systems (Shanghai) PTE LTD
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+/*
+ * SPDX-FileCopyrightText: 2015-2022 Espressif Systems (Shanghai) CO LTD
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
 
 /*
  * All the APIs declared here are internal only APIs, it can only be used by
@@ -71,17 +63,6 @@ typedef enum {
     WIFI_LOG_MODULE_COEX, /*logs related to WiFi and BT(or BLE) coexist*/
     WIFI_LOG_MODULE_MESH, /*logs related to Mesh*/
 } wifi_log_module_t;
-
-/**
-  * @brief FTM Report log levels configuration
-  *
-  */
-typedef struct {
-    uint8_t show_rtt:1;     /**< Display all valid Round-Trip-Time readings for FTM frames */
-    uint8_t show_diag:1;    /**< Display dialogue tokens for all FTM frames with valid readings */
-    uint8_t show_t1t2t3t4:1;/**< Display all valid T1, T2, T3, T4 readings considered while calculating RTT */
-    uint8_t show_rxrssi:1;  /**< Display RSSI for each FTM frame with valid readings */
-} ftm_report_log_level_t;
 
 /**
   * @brief WiFi log submodule definition
@@ -270,6 +251,7 @@ esp_err_t esp_wifi_internal_set_sta_ip(void);
   *
   * @attention 1. If fixed rate is enabled, both management and data frame are transmitted with fixed rate
   * @attention 2. Make sure that the receiver is able to receive the frame with the fixed rate if you want the frame to be received
+  * @attention 3. Not support to set fix rate for espnow and 80211_tx
   *
   * @param  ifx : wifi interface
   * @param  en : false - disable, true - enable
@@ -514,7 +496,26 @@ bool esp_wifi_internal_is_tsf_active(void);
   *
   */
 void esp_wifi_internal_update_light_sleep_wake_ahead_time(uint32_t);
+
+/**
+  * @brief     Update WiFi TSF tick interval
+  *
+  * @return
+  *    - true: Active
+  *    - false: Not active
+  */
+esp_err_t esp_wifi_update_tsf_tick_interval(void);
 #endif
+
+/**
+ * @brief Wifi power domain power on
+ */
+void esp_wifi_power_domain_on(void);
+
+/**
+ * @brief Wifi power domain power off
+ */
+void esp_wifi_power_domain_off(void);
 
 #if CONFIG_MAC_BB_PD
 /**
@@ -599,15 +600,13 @@ void esp_wifi_set_sleep_delay_time(uint32_t return_to_sleep_delay);
 void esp_wifi_set_keep_alive_time(uint32_t keep_alive_time);
 
 /**
- * @brief Set FTM Report log level
+ * @brief   Configure wifi beacon montior default parameters
  *
- * @param   log_lvl Log levels configuration
- *
- * @return
- *    - ESP_OK: succeed
- *    - ESP_ERR_NOT_SUPPORTED: No FTM support
+ * @param   enable: enable or disable beacon monitor
+ * @param   timeout: timeout time for close rf phy when beacon loss occurs, Unit: 1024 microsecond
+ * @param   threshold: maximum number of consecutive lost beacons allowed
  */
-esp_err_t esp_wifi_set_ftm_report_log_level(ftm_report_log_level_t *log_lvl);
+void esp_wifi_beacon_monitor_configure(bool enable, int timeout, int threshold, int delta_intr_early, int delta_timeout);
 
 #ifdef __cplusplus
 }

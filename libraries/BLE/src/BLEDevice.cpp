@@ -347,7 +347,7 @@ gatts_event_handler BLEDevice::m_customGattsHandler = nullptr;
 			return;
 		}
 
-#ifndef CLASSIC_BT_ENABLED
+#ifndef CONFIG_BT_CLASSIC_ENABLED
 		esp_bt_controller_mem_release(ESP_BT_MODE_CLASSIC_BT);  
 #endif
 		esp_bt_controller_config_t bt_cfg = BT_CONTROLLER_INIT_CONFIG_DEFAULT();
@@ -357,7 +357,7 @@ gatts_event_handler BLEDevice::m_customGattsHandler = nullptr;
 			return;
 		}
 
-#ifndef CLASSIC_BT_ENABLED
+#ifndef CONFIG_BT_CLASSIC_ENABLED
 		errRc = esp_bt_controller_enable(ESP_BT_MODE_BLE);
 		if (errRc != ESP_OK) {
 			log_e("esp_bt_controller_enable: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
@@ -629,10 +629,15 @@ void BLEDevice::addPeerDevice(void* peer, bool _client, uint16_t conn_id) {
 	m_connectedClientsMap.insert(std::pair<uint16_t, conn_status_t>(conn_id, status));
 }
 
+//there may have some situation that invoking this function simultaneously, that will cause CORRUPT HEAP
+//let this function serializable
+portMUX_TYPE BLEDevice::mux = portMUX_INITIALIZER_UNLOCKED;
 void BLEDevice::removePeerDevice(uint16_t conn_id, bool _client) {
+	portENTER_CRITICAL(&mux);
 	log_i("remove: %d, GATT role %s", conn_id, _client?"client":"server");
 	if(m_connectedClientsMap.find(conn_id) != m_connectedClientsMap.end())
 		m_connectedClientsMap.erase(conn_id);
+	portEXIT_CRITICAL(&mux);
 }
 
 /* multi connect support */
