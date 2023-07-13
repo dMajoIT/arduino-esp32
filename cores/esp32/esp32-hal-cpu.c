@@ -107,7 +107,7 @@ bool addApbChangeCallback(void * arg, apb_change_cb_t cb){
         // look for duplicate callbacks
         while( (r != NULL ) && !((r->cb == cb) && ( r->arg == arg))) r = r->next;
         if (r) {
-            log_e("duplicate func=%08X arg=%08X",c->cb,c->arg);
+            log_e("duplicate func=%8p arg=%8p",c->cb,c->arg);
             free(c);
             xSemaphoreGive(apb_change_lock);
             return false;
@@ -129,7 +129,7 @@ bool removeApbChangeCallback(void * arg, apb_change_cb_t cb){
     // look for matching callback
     while( (r != NULL ) && !((r->cb == cb) && ( r->arg == arg))) r = r->next;
     if ( r == NULL ) {
-        log_e("not found func=%08X arg=%08X",cb,arg);
+        log_e("not found func=%8p arg=%8p",cb,arg);
         xSemaphoreGive(apb_change_lock);
         return false;
         }
@@ -211,7 +211,7 @@ bool setCpuFrequencyMhz(uint32_t cpu_freq_mhz){
     capb = calculateApb(&cconf);
     //New APB
     apb = calculateApb(&conf);
-    log_d("%s: %u / %u = %u Mhz, APB: %u Hz", (conf.source == RTC_CPU_FREQ_SRC_PLL)?"PLL":((conf.source == RTC_CPU_FREQ_SRC_APLL)?"APLL":((conf.source == RTC_CPU_FREQ_SRC_XTAL)?"XTAL":"8M")), conf.source_freq_mhz, conf.div, conf.freq_mhz, apb);
+    
     //Call peripheral functions before the APB change
     if(apb_change_callbacks){
         triggerApbChangeCallback(APB_BEFORE_CHANGE, capb, apb);
@@ -241,6 +241,7 @@ bool setCpuFrequencyMhz(uint32_t cpu_freq_mhz){
     if(apb_change_callbacks){
         triggerApbChangeCallback(APB_AFTER_CHANGE, capb, apb);
     }
+    log_d("%s: %u / %u = %u Mhz, APB: %u Hz", (conf.source == RTC_CPU_FREQ_SRC_PLL)?"PLL":((conf.source == RTC_CPU_FREQ_SRC_APLL)?"APLL":((conf.source == RTC_CPU_FREQ_SRC_XTAL)?"XTAL":"8M")), conf.source_freq_mhz, conf.div, conf.freq_mhz, apb);
     return true;
 }
 

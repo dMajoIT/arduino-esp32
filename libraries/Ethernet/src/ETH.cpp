@@ -41,6 +41,7 @@
 #include "lwip/dns.h"
 
 extern void tcpipInit();
+extern void add_esp_interface_netif(esp_interface_t interface, esp_netif_t* esp_netif); /* from WiFiGeneric */
 
 #if ESP_IDF_VERSION_MAJOR > 3
 
@@ -57,24 +58,25 @@ extern void tcpipInit();
 static eth_clock_mode_t eth_clock_mode = ETH_CLK_MODE;
 
 #if CONFIG_ETH_RMII_CLK_INPUT
+/*
 static void emac_config_apll_clock(void)
 {
-    /* apll_freq = xtal_freq * (4 + sdm2 + sdm1/256 + sdm0/65536)/((o_div + 2) * 2) */
+    // apll_freq = xtal_freq * (4 + sdm2 + sdm1/256 + sdm0/65536)/((o_div + 2) * 2)
     rtc_xtal_freq_t rtc_xtal_freq = rtc_clk_xtal_freq_get();
     switch (rtc_xtal_freq) {
     case RTC_XTAL_FREQ_40M: // Recommended
-        /* 50 MHz = 40MHz * (4 + 6) / (2 * (2 + 2) = 50.000 */
-        /* sdm0 = 0, sdm1 = 0, sdm2 = 6, o_div = 2 */
+        // 50 MHz = 40MHz * (4 + 6) / (2 * (2 + 2) = 50.000
+        // sdm0 = 0, sdm1 = 0, sdm2 = 6, o_div = 2
         rtc_clk_apll_enable(true, 0, 0, 6, 2);
         break;
     case RTC_XTAL_FREQ_26M:
-        /* 50 MHz = 26MHz * (4 + 15 + 118 / 256 + 39/65536) / ((3 + 2) * 2) = 49.999992 */
-        /* sdm0 = 39, sdm1 = 118, sdm2 = 15, o_div = 3 */
+        // 50 MHz = 26MHz * (4 + 15 + 118 / 256 + 39/65536) / ((3 + 2) * 2) = 49.999992
+        // sdm0 = 39, sdm1 = 118, sdm2 = 15, o_div = 3
         rtc_clk_apll_enable(true, 39, 118, 15, 3);
         break;
     case RTC_XTAL_FREQ_24M:
-        /* 50 MHz = 24MHz * (4 + 12 + 255 / 256 + 255/65536) / ((2 + 2) * 2) = 49.499977 */
-        /* sdm0 = 255, sdm1 = 255, sdm2 = 12, o_div = 2 */
+        // 50 MHz = 24MHz * (4 + 12 + 255 / 256 + 255/65536) / ((2 + 2) * 2) = 49.499977
+        // sdm0 = 255, sdm1 = 255, sdm2 = 12, o_div = 2
         rtc_clk_apll_enable(true, 255, 255, 12, 2);
         break;
     default: // Assume we have a 40M xtal
@@ -82,8 +84,10 @@ static void emac_config_apll_clock(void)
         break;
     }
 }
+*/
 #endif
 
+/*
 static esp_err_t on_lowlevel_init_done(esp_eth_handle_t eth_handle){
 #if CONFIG_IDF_TARGET_ESP32
     if(eth_clock_mode > ETH_CLOCK_GPIO17_OUT){
@@ -123,7 +127,7 @@ static esp_err_t on_lowlevel_init_done(esp_eth_handle_t eth_handle){
         //gpio_hal_iomux_func_sel(PERIPHS_IO_MUX_GPIO0_U, FUNC_GPIO0_EMAC_TX_CLK);
         //PIN_INPUT_ENABLE(GPIO_PIN_MUX_REG[0]);
         pinMode(0, INPUT);
-        pinMode(0, FUNCTION_6);
+        PIN_FUNC_SELECT(GPIO_PIN_MUX_REG[0], 5);
         EMAC_EXT.ex_clk_ctrl.ext_en = 1;
         EMAC_EXT.ex_clk_ctrl.int_en = 0;
         EMAC_EXT.ex_oscclk_conf.clk_sel = 1;
@@ -135,7 +139,7 @@ static esp_err_t on_lowlevel_init_done(esp_eth_handle_t eth_handle){
             //gpio_hal_iomux_func_sel(PERIPHS_IO_MUX_GPIO0_U, FUNC_GPIO0_CLK_OUT1);
             //PIN_INPUT_DISABLE(GPIO_PIN_MUX_REG[0]);
             pinMode(0, OUTPUT);
-            pinMode(0, FUNCTION_2);
+            PIN_FUNC_SELECT(GPIO_PIN_MUX_REG[0], 1);
             // Choose the APLL clock to output on GPIO
             REG_WRITE(PIN_CTRL, 6);
 #endif
@@ -145,7 +149,7 @@ static esp_err_t on_lowlevel_init_done(esp_eth_handle_t eth_handle){
             //gpio_hal_iomux_func_sel(PERIPHS_IO_MUX_GPIO16_U, FUNC_GPIO16_EMAC_CLK_OUT);
             //PIN_INPUT_DISABLE(GPIO_PIN_MUX_REG[16]);
             pinMode(16, OUTPUT);
-            pinMode(16, FUNCTION_6);
+            PIN_FUNC_SELECT(GPIO_PIN_MUX_REG[16], 5);
 #endif
         } else if(eth_clock_mode == ETH_CLOCK_GPIO17_OUT){
 #if CONFIG_ETH_RMII_CLK_OUT_GPIO != 17
@@ -153,7 +157,7 @@ static esp_err_t on_lowlevel_init_done(esp_eth_handle_t eth_handle){
             //gpio_hal_iomux_func_sel(PERIPHS_IO_MUX_GPIO17_U, FUNC_GPIO17_EMAC_CLK_OUT_180);
             //PIN_INPUT_DISABLE(GPIO_PIN_MUX_REG[17]);
             pinMode(17, OUTPUT);
-            pinMode(17, FUNCTION_6);
+            PIN_FUNC_SELECT(GPIO_PIN_MUX_REG[17], 5);
 #endif
         }
 #if CONFIG_ETH_RMII_CLK_INPUT
@@ -168,7 +172,7 @@ static esp_err_t on_lowlevel_init_done(esp_eth_handle_t eth_handle){
 #endif
     return ESP_OK;
 }
-
+*/
 
 
 /**
@@ -217,9 +221,6 @@ ETHClass::ETHClass()
      ,eth_handle(NULL)
 #endif
      ,started(false)
-#if ESP_IDF_VERSION_MAJOR > 3
-     ,eth_link(ETH_LINK_DOWN)
-#endif
 {
 }
 
@@ -327,6 +328,9 @@ bool ETHClass::begin(uint8_t phy_addr, int power, int mdc, int mdio, eth_phy_typ
         return false;
     }
 
+    /* attach to WiFiGeneric to receive events */
+    add_esp_interface_netif(ESP_IF_ETH, eth_netif);
+
     if(esp_eth_start(eth_handle) != ESP_OK){
         log_e("esp_eth_start failed");
         return false;
@@ -392,7 +396,7 @@ bool ETHClass::begin(uint8_t phy_addr, int power, int mdc, int mdio, eth_phy_typ
         log_e("esp_eth_init error: %d", err);
     }
 #endif
-    // holds a few microseconds to let DHCP start and enter into a good state
+    // holds a few milliseconds to let DHCP start and enter into a good state
     // FIX ME -- adresses issue https://github.com/espressif/arduino-esp32/issues/5733
     delay(50);
 
@@ -404,7 +408,7 @@ bool ETHClass::config(IPAddress local_ip, IPAddress gateway, IPAddress subnet, I
     esp_err_t err = ESP_OK;
     tcpip_adapter_ip_info_t info;
 
-    if(local_ip != (uint32_t)0x00000000 && local_ip != INADDR_NONE){
+    if(static_cast<uint32_t>(local_ip) != 0){
         info.ip.addr = static_cast<uint32_t>(local_ip);
         info.gw.addr = static_cast<uint32_t>(gateway);
         info.netmask.addr = static_cast<uint32_t>(subnet);
@@ -440,13 +444,13 @@ bool ETHClass::config(IPAddress local_ip, IPAddress gateway, IPAddress subnet, I
     ip_addr_t d;
     d.type = IPADDR_TYPE_V4;
 
-    if(dns1 != (uint32_t)0x00000000 && dns1 != INADDR_NONE) {
+    if(static_cast<uint32_t>(dns1) != 0) {
         // Set DNS1-Server
         d.u_addr.ip4.addr = static_cast<uint32_t>(dns1);
         dns_setserver(0, &d);
     }
 
-    if(dns2 != (uint32_t)0x00000000 && dns2 != INADDR_NONE) {
+    if(static_cast<uint32_t>(dns2) != 0) {
         // Set DNS2-Server
         d.u_addr.ip4.addr = static_cast<uint32_t>(dns2);
         dns_setserver(1, &d);
@@ -531,8 +535,10 @@ bool ETHClass::setHostname(const char * hostname)
 
 bool ETHClass::fullDuplex()
 {
-#ifdef ESP_IDF_VERSION_MAJOR
-    return true;//todo: do not see an API for this
+#if ESP_IDF_VERSION_MAJOR > 3
+    eth_duplex_t link_duplex;
+    esp_eth_ioctl(eth_handle, ETH_CMD_G_DUPLEX_MODE, &link_duplex);
+    return (link_duplex == ETH_DUPLEX_FULL);
 #else
     return eth_config.phy_get_duplex_mode();
 #endif
@@ -540,8 +546,8 @@ bool ETHClass::fullDuplex()
 
 bool ETHClass::linkUp()
 {
-#ifdef ESP_IDF_VERSION_MAJOR
-    return eth_link == ETH_LINK_UP;
+#if ESP_IDF_VERSION_MAJOR > 3
+    return WiFiGenericClass::getStatusBits() & ETH_CONNECTED_BIT;
 #else
     return eth_config.phy_check_link();
 #endif
@@ -549,7 +555,7 @@ bool ETHClass::linkUp()
 
 uint8_t ETHClass::linkSpeed()
 {
-#ifdef ESP_IDF_VERSION_MAJOR
+#if ESP_IDF_VERSION_MAJOR > 3
     eth_speed_t link_speed;
     esp_eth_ioctl(eth_handle, ETH_CMD_G_SPEED, &link_speed);
     return (link_speed == ETH_SPEED_10M)?10:100;

@@ -72,8 +72,8 @@ bool SDMMCFS::setPins(int clk, int cmd, int d0, int d1, int d2, int d3)
         (d0 == (int)SDMMC_SLOT1_IOMUX_PIN_NUM_D0) &&
         (((d1 == -1) && (d2 == -1) && (d3 == -1)) ||
          ((d1 == (int)SDMMC_SLOT1_IOMUX_PIN_NUM_D1) &&
-         (d1 == (int)SDMMC_SLOT1_IOMUX_PIN_NUM_D2) &&
-         (d1 == (int)SDMMC_SLOT1_IOMUX_PIN_NUM_D3)));
+         (d2 == (int)SDMMC_SLOT1_IOMUX_PIN_NUM_D2) &&
+         (d3 == (int)SDMMC_SLOT1_IOMUX_PIN_NUM_D3)));
     if (!pins_ok) {
         log_e("SDMMCFS: specified pins are not supported by this chip.");
         return false;
@@ -84,7 +84,7 @@ bool SDMMCFS::setPins(int clk, int cmd, int d0, int d1, int d2, int d3)
 #endif
 }
 
-bool SDMMCFS::begin(const char * mountpoint, bool mode1bit, bool format_if_mount_failed, int sdmmc_frequency)
+bool SDMMCFS::begin(const char * mountpoint, bool mode1bit, bool format_if_mount_failed, int sdmmc_frequency, uint8_t maxOpenFiles)
 {
     if(_card) {
         return true;
@@ -122,7 +122,7 @@ bool SDMMCFS::begin(const char * mountpoint, bool mode1bit, bool format_if_mount
 
     esp_vfs_fat_sdmmc_mount_config_t mount_config = {
         .format_if_mount_failed = format_if_mount_failed,
-        .max_files = 5,
+        .max_files = maxOpenFiles,
         .allocation_unit_size = 0
     };
 

@@ -69,13 +69,19 @@
 #define __STRINGIFY(a) #a
 #endif
 
+// can't define max() / min() because of conflicts with C++
+#define _min(a,b) ((a)<(b)?(a):(b))  
+#define _max(a,b) ((a)>(b)?(a):(b))
+#define _abs(x) ((x)>0?(x):-(x))  // abs() comes from STL
 #define constrain(amt,low,high) ((amt)<(low)?(low):((amt)>(high)?(high):(amt)))
+#define _round(x)     ((x)>=0?(long)((x)+0.5):(long)((x)-0.5))  // round() comes from STL
 #define radians(deg) ((deg)*DEG_TO_RAD)
 #define degrees(rad) ((rad)*RAD_TO_DEG)
 #define sq(x) ((x)*(x))
 
-#define sei()
-#define cli()
+// ESP32xx runs FreeRTOS... disabling interrupts can lead to issues, such as Watchdog Timeout
+#define sei() portENABLE_INTERRUPTS()
+#define cli() portDISABLE_INTERRUPTS()
 #define interrupts() sei()
 #define noInterrupts() cli()
 
@@ -89,6 +95,7 @@
 #define bitRead(value, bit) (((value) >> (bit)) & 0x01)
 #define bitSet(value, bit) ((value) |= (1UL << (bit)))
 #define bitClear(value, bit) ((value) &= ~(1UL << (bit)))
+#define bitToggle(value, bit) ((value) ^= (1UL << (bit)))
 #define bitWrite(value, bit, bitvalue) ((bitvalue) ? bitSet(value, bit) : bitClear(value, bit))
 
 // avr-libc defines _NOP() since 1.6.2
@@ -130,9 +137,19 @@ typedef unsigned int word;
 void setup(void);
 void loop(void);
 
+// The default is using Real Hardware random number generator  
+// But when randomSeed() is called, it turns to Psedo random
+// generator, exactly as done in Arduino mainstream
+long random(long);
 long random(long, long);
-#endif
+// Calling randomSeed() will make random()
+// using pseudo random like in Arduino
 void randomSeed(unsigned long);
+// Allow the Application to decide if the random generator
+// will use Real Hardware random generation (true - default)
+// or Pseudo random generation (false) as in Arduino MainStream
+void useRealRandomGenerator(bool useRandomHW);
+#endif
 long map(long, long, long, long, long);
 
 #ifdef __cplusplus
@@ -168,12 +185,13 @@ void shiftOut(uint8_t dataPin, uint8_t clockPin, uint8_t bitOrder, uint8_t val);
 #include "Esp.h"
 #include "esp32/spiram.h"
 
+// Use float-compatible stl abs() and round(), we don't use Arduino macros to avoid issues with the C++ libraries
 using std::abs;
 using std::isinf;
 using std::isnan;
 using std::max;
 using std::min;
-using ::round;
+using std::round;
 
 uint16_t makeWord(uint16_t w);
 uint16_t makeWord(uint8_t h, uint8_t l);
@@ -199,12 +217,7 @@ void setToneChannel(uint8_t channel = 0);
 void tone(uint8_t _pin, unsigned int frequency, unsigned long duration = 0);
 void noTone(uint8_t _pin);
 
-// WMath prototypes
-long random(long);
 #endif /* __cplusplus */
-
-#define _min(a,b) ((a)<(b)?(a):(b))
-#define _max(a,b) ((a)>(b)?(a):(b))
 
 #include "pins_arduino.h"
 
